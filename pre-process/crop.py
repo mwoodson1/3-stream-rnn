@@ -4,7 +4,6 @@ import scipy.io as sio
 
 def foveaCrop(fileName, Dir, vidName)
     output = []
-    vidName = 'UCF-101/BasketballDunk/v_BasketballDunk_g01_c01.avi'
     #vidName = 'drop.avi'
     #cap = cv2.VideoCapture(0)
     cap = cv2.VideoCapture(vidName)
