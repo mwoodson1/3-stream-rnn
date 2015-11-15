@@ -1,23 +1,11 @@
 import os
 import cv2
-import matplotlib
 import numpy as np
-import matplotlib.pyplot as plt
 import scipy.io as sio
-import h5py
 
-#for filename in os.listdir("../data/UCF-101/"):
-dirs = [x[0] for x in os.walk("../data/UCF-101/")]
-
-for i in xrange(len(dirs)):
-    if(i==0):
-        continue
-    directory = "../data/pre-process/"+dirs[i].split("/")[3]
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
+#Creates and saves a .mat file that has all optical flow images for input video
 def make_optFlow(fileName,Dir,vidName):
-    directory = "../data/pre-process/"+Dir.split("/")[3]
+    directory = "../../data/pre-process/"+Dir.split("/")[4]
     cap = cv2.VideoCapture(fileName)
 
     #Start reading frames
@@ -63,11 +51,27 @@ def make_optFlow(fileName,Dir,vidName):
     print directory+"/"+vidName.split(".")[0]+"_oflow"
     sio.savemat(directory+"/"+vidName.split(".")[0]+"_oflow.mat", {'flow':flow_vid})
 
-#Loop through all directories
-for i in xrange(len(dirs)):
-    if(i==0):
-        continue
-    #Loop through every file in the directory
-    for filename in os.listdir(dirs[i]):
-        new_file = filename.split('.')[0]+"_oflow.mat"
-        make_optFlow(dirs[i]+"/"+filename,dirs[i],filename)
+
+def main():
+	#Get all the directories in the UCF-101 dataset
+	dirs = [x[0] for x in os.walk("../../data/UCF-101/")]
+
+	#Creating a directory similar to dataset for the pre-processed data
+	for i in xrange(len(dirs)):
+	    if(i==0):
+	        continue
+	    directory = "../../data/pre-process/"+dirs[i].split("/")[3]
+	    if not os.path.exists(directory):
+	        os.makedirs(directory)
+
+	#Loop through all directories
+	for i in xrange(len(dirs)):
+	    if(i==0):
+	        continue
+	    #Loop through every file in the directory
+	    for filename in os.listdir(dirs[i]):
+	        new_file = filename.split('.')[0]+"_oflow.mat"
+	        make_optFlow(dirs[i]+"/"+filename,dirs[i],filename)
+
+if __name__ == '__main__':
+	main()
