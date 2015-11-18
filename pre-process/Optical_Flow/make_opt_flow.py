@@ -2,10 +2,11 @@ import os
 import cv2
 import numpy as np
 import scipy.io as sio
+import threading
 
 #Creates and saves a .mat file that has all optical flow images for input video
-def make_optFlow(fileName,Dir,vidName):
-    directory = "../../data/pre-process/"+Dir.split("/")[4]
+def make_optFlow(fileName):
+    print "Now processing: "+fileName.split("/")[5]
     cap = cv2.VideoCapture(fileName)
 
     #Start reading frames
@@ -16,10 +17,13 @@ def make_optFlow(fileName,Dir,vidName):
 
     #Checking the number of frames in the video
     length = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT))
+    x = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
+    y = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
 
-    #Store the flow images in a list for now
-    flow_vid = []
-    flow_vid.append(np.zeros(frame1.shape))
+    #Open a videowriter object
+    fourcc = cv2.cv.CV_FOURCC(*'XVID')
+    newFileName = "../../data/pre-process/optFlow/"+fileName.split('/')[4]+"/"+fileName.split('/')[5].split('.')[0]+"_optFlow.avi"
+    out = cv2.VideoWriter(newFileName ,fourcc, 20, (x,y))
 
     #Loop through all of the frames and calculate optical flow
     while(1):
@@ -36,42 +40,35 @@ def make_optFlow(fileName,Dir,vidName):
         hsv[...,0] = ang*180/np.pi/2
         hsv[...,2] = cv2.normalize(mag,None,0,255,cv2.NORM_MINMAX)
         rgb = cv2.cvtColor(hsv,cv2.COLOR_HSV2RGB)
-
-        flow_vid.append(rgb)
+        out.write(rgb)
 
         prvs = next
 
     #Close the file
     cap.release()
-
-    #Convert our list of flow frames to an array
-    flow_vid = np.array(flow_vid)
-
-    #Store as a .mat file
-    print directory+"/"+vidName.split(".")[0]+"_oflow"
-    sio.savemat(directory+"/"+vidName.split(".")[0]+"_oflow.mat", {'flow':flow_vid})
-
+    out.release()
 
 def main():
-	#Get all the directories in the UCF-101 dataset
-	dirs = [x[0] for x in os.walk("../../data/UCF-101/")]
+    #Get all the directories in the UCF-101 dataset
+    dirs = [x[0] for x in os.walk("../../data/UCF-101/")]
 
-	#Creating a directory similar to dataset for the pre-processed data
-	for i in xrange(len(dirs)):
-	    if(i==0):
-	        continue
-	    directory = "../../data/pre-process/"+dirs[i].split("/")[3]
-	    if not os.path.exists(directory):
-	        os.makedirs(directory)
+    #Creating a directory similar to dataset for the pre-processed data
+    for i in xrange(len(dirs)):
+        if(i==0):
+            continue
+        directory = "../../data/pre-process/optFlow/"+dirs[i].split("/")[4]
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
-	#Loop through all directories
-	for i in xrange(len(dirs)):
-	    if(i==0):
-	        continue
-	    #Loop through every file in the directory
-	    for filename in os.listdir(dirs[i]):
-	        new_file = filename.split('.')[0]+"_oflow.mat"
-	        make_optFlow(dirs[i]+"/"+filename,dirs[i],filename)
+    l = len(dirs)
+    #Loop through all directories
+    for i in xrange(l):
+        print("%.2f" % (float(i)/float(l)))
+        if(i==0):
+            continue
+        #Loop through every file in the directory
+        for filename in os.listdir(dirs[i]):
+            make_optFlow(dirs[i]+"/"+filename)
 
 if __name__ == '__main__':
 	main()
