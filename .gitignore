@@ -1,2 +1,6 @@
 data/
 networks/alexnet.p
+testing_frames_classes.npy
+testing_frames.npy
+training_frames_classes.npy
+training_frames.npy
