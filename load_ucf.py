@@ -15,9 +15,6 @@ def selectRandomFrames(fileName):
 
 	#Start reading frames
 	ret, frame1 = cap.read()
-	prvs = cv2.cvtColor(frame1,cv2.COLOR_BGR2GRAY)
-	hsv = np.zeros_like(frame1)
-	hsv[...,1] = 255
 
     #Checking the number of frames in the video
 	length = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT))
@@ -34,11 +31,9 @@ def selectRandomFrames(fileName):
 
 	#Loop through all of the frames and get training frames
 	output_frames = []
-	cur_frame = 0
 
 	tmp = fileName.split("/")
 	new_fileName = "data/pre-process/cropped/"+tmp[2]+"/"+tmp[3].split(".")[0] +"_cropped.avi"
-
 
 	cap = cv2.VideoCapture(new_fileName)
 	while not cap.isOpened():
@@ -128,7 +123,6 @@ def getTestList():
 		index = index[:len(index)-2]
 		class_ind[index] = int(val)
 
-	print class_ind
 	testVids = {}
 	file1 = "testlist01.txt"
 	#file2 = "trainlist02.txt"

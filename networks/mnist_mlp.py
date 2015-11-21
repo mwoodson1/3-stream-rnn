@@ -57,8 +57,14 @@ nclass = 101
 (X_train, y_train), (X_test, y_test), nclass = load_mnist(path=args.data_dir)
 print type(X_train)
 print type(y_train)
+print "training stuff"
 print X_train.shape
 print y_train.shape
+print y_train
+
+print "testing stuff"
+print X_test.shape
+print y_test.shape
 
 # setup a training set iterator
 train_set = DataIterator(X_train, y_train, nclass=nclass, lshape=(1, 28, 28))
