@@ -7,10 +7,12 @@ import pickle
 
 NUM_FRAMES = 1  #Number of frames to be selected for each video
 
-#Goes through all the preprocessed .mat files for each video and selects a
-#random set of frames for training set
-#output a dictionary of {vidName: list of frame indices selected}
 def selectRandomFrames(fileName):
+	"""
+	Goes through all the preprocessed .mat files for each video and selects a
+	random set of frames for training set
+	output a dictionary of {vidName: list of frame indices selected}
+	"""
 	cap = cv2.VideoCapture(fileName)
 
 	#Start reading frames
@@ -68,12 +70,12 @@ def selectRandomFrames(fileName):
 
 #Returns a dictionary containing all the video (.avi) file names in the training list
 def getTrainList():
+	"""
+	Creates a dictionary of video_name -> label
+	"""
 	trainVids = {}
 	directory = "data/ucfTrainTestlist/"
-	file1 = "trainlist01.txt"
-	#file2 = "trainlist02.txt"
-	#file3 = "trainlist03.txt"
-	files = [file1]#, file2, file3]
+	files = ["trainlist01.txt"]
 	for f in files:
 	    fOpen = open(directory+f, 'r')
 	    for line in fOpen:
@@ -83,6 +85,9 @@ def getTrainList():
 
 
 def createTrainingSet():
+	"""
+	Creates and saves the training set of frames and labels
+	"""
 	#Get all the directories in the UCF-101 dataset
 	dirs = [x[0] for x in os.walk("data/UCF-101/")]
 	#Get all the videos in the training list
@@ -114,6 +119,9 @@ def createTrainingSet():
 	np.save("training_frames_classes", outputs)
 
 def getTestList():
+	"""
+	Creates a dictionary of video_name->label
+	"""
 	directory = "data/ucfTrainTestlist/"
 	#Get class index dictionary
 	class_ind = {}
@@ -124,10 +132,7 @@ def getTestList():
 		class_ind[index] = int(val)
 
 	testVids = {}
-	file1 = "testlist01.txt"
-	#file2 = "trainlist02.txt"
-	#file3 = "trainlist03.txt"
-	files = [file1]#, file2, file3]
+	files = ["testlist01.txt"]
 	for f in files:
 	    fOpen = open(directory+f, 'r')
 	    for line in fOpen:
@@ -136,6 +141,9 @@ def getTestList():
 	return testVids
 
 def createTestingSet():
+	"""
+	Creates and saves the testing set of frames and labels
+	"""
 	#Get all the directories in the UCF-101 dataset
 	dirs = [x[0] for x in os.walk("data/UCF-101/")]
 	#Get all the videos in the training list
@@ -168,8 +176,6 @@ def createTestingSet():
 
 
 def main():
-	
-
 	if(os.path.isfile("training_frames_classes.npy")):
 		print "Found training frame file"
 	else:
