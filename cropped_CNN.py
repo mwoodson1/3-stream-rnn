@@ -6,7 +6,7 @@ import logging
 from neon.util.argparser import NeonArgparser
 from neon.initializers import Constant, Gaussian
 from neon.layers import Conv, DropoutBinary, Pooling, GeneralizedCost, Affine
-from neon.optimizers import GradientDescentMomentum, MultiOptimizer, Schedule
+from neon.optimizers import GradientDescentMomentum, MultiOptimizer, Schedule, Adadelta
 from neon.transforms import Rectlin, Softmax, CrossEntropyMulti, TopKMisclassification
 from neon.models import Model
 from neon.data import ImgMaster
@@ -35,6 +35,9 @@ def get_data():
 	#Need to reshape X and y to appropriate dataiterator formats
 	X_test = np.reshape(X_test,(num_ex, x*y*rgb))
 
+	y_train = np.reshape(y_train, y_train.shape[0]).astype(np.uint8)
+	y_test = np.reshape(y_test, y_test.shape[0]).astype(np.uint8)
+
 	return (X_train, y_train, X_test, y_test)
 
 def constuct_network():
@@ -59,8 +62,7 @@ def constuct_network():
 	          Affine(nout=4096, init=Gaussian(scale=0.01), bias=Constant(1), activation=Rectlin()),
 	          DropoutBinary(keep=0.5),
 	          Affine(nout=101, init=Gaussian(scale=0.01), bias=Constant(-7), activation=Softmax())]
-	model = Model(layers=layers)
-	return model
+	return Model(layers=layers)
 
 
 def main():
@@ -74,6 +76,11 @@ def main():
 
 	print "Loading data..."
 	(X_train, y_train, X_test, y_test) = get_data()
+	X_train = X_train[0:500,:]
+	y_train = y_train[0:500]
+
+	X_test = X_test[0:500,:]
+	y_test = y_test[0:500]
 
 	print "Training matrix dimensions"
 	print "X_train: ", X_train.shape
@@ -91,6 +98,8 @@ def main():
 	#Create AlexNet architecture
 	model = constuct_network()
 
+	model.load_weights(args.model_file)
+
 	# drop weights LR by 1/250**(1/3) at epochs (23, 45, 66), drop bias LR by 1/10 at epoch 45
 	weight_sched = Schedule([22, 44, 65], (1/250.)**(1/3.))
 	opt_gdm = GradientDescentMomentum(0.01, 0.9, wdecay=0.0005, schedule=weight_sched)
@@ -102,6 +111,9 @@ def main():
 	callbacks = Callbacks(model, train, eval_set=test, metric=valmetric, **args.callback_args)
 
 	cost = GeneralizedCost(costfunc=CrossEntropyMulti())
+
+	
+
 	#flag = input("Press Enter if you want to begin training process.")
 	print "Training network..."
 	model.fit(train, optimizer=opt, num_epochs=args.epochs, cost=cost, callbacks=callbacks)
