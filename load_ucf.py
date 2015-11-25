@@ -98,6 +98,9 @@ def createTrainingSet():
 	trainingFrames = dict.fromkeys(keys)
 
 	frames_so_far = np.zeros([len(keys)*NUM_FRAMES,120,160,3])
+
+	import random
+	rand_ind = random.sample(range(len(keys)*NUM_FRAMES),len(keys)*NUM_FRAMES)
 	
 	outputs = np.zeros([len(keys),1])
 
@@ -112,8 +115,9 @@ def createTrainingSet():
 		for filename in os.listdir(dirs[i]):
 			#Check if filename exists in training set, otherwise skip
 			if dirs[i]+"/"+filename in keys:
-				frames_so_far[cnt,:,:,:] = selectRandomFrames(dirs[i]+"/"+filename)
-				outputs[cnt] = trainVids[dirs[i]+"/"+filename] 
+				k = rand_ind[cnt]
+				frames_so_far[k,:,:,:] = selectRandomFrames(dirs[i]+"/"+filename)
+				outputs[k] = trainVids[dirs[i]+"/"+filename] 
 				cnt += 1
 	np.save("training_frames",frames_so_far)
 	np.save("training_frames_classes", outputs)
@@ -154,6 +158,9 @@ def createTestingSet():
 	trainingFrames = dict.fromkeys(keys)
 
 	frames_so_far = np.zeros([len(keys)*NUM_FRAMES,120,160,3])
+
+	import random
+	rand_ind = random.sample(range(len(keys)*NUM_FRAMES),len(keys)*NUM_FRAMES)
 	
 	outputs = np.zeros([len(keys),1])
 
@@ -168,8 +175,9 @@ def createTestingSet():
 		for filename in os.listdir(dirs[i]):
 			#Check if filename exists in training set, otherwise skip
 			if dirs[i]+"/"+filename in keys:
-				frames_so_far[cnt,:,:,:] = selectRandomFrames(dirs[i]+"/"+filename)
-				outputs[cnt] = trainVids[dirs[i]+"/"+filename] 
+				k = rand_ind[cnt]
+				frames_so_far[k,:,:,:] = selectRandomFrames(dirs[i]+"/"+filename)
+				outputs[k] = trainVids[dirs[i]+"/"+filename] 
 				cnt += 1
 	np.save("testing_frames",frames_so_far)
 	np.save("testing_frames_classes", outputs)
