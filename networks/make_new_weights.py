@@ -4,7 +4,7 @@ import numpy as np
 import pickle
 
 def main():
-	if(not(os.path.isfile("alexnet.p")))
+	if(not(os.path.isfile("alexnet.p"))):
 	    print "Make sure to download the alexnet weights before running this script"
 	    return 0
 
