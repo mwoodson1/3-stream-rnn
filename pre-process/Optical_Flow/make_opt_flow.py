@@ -20,29 +20,35 @@ def make_optFlow(fileName):
     x = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
     y = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
 
+    tmp = length / 30
+    valid_frames = [tmp*i for i in xrange(0,length/tmp)]
+
     #Open a videowriter object
     fourcc = cv2.cv.CV_FOURCC(*'XVID')
     newFileName = "../../data/pre-process/optFlow/"+fileName.split('/')[4]+"/"+fileName.split('/')[5].split('.')[0]+"_optFlow.avi"
     out = cv2.VideoWriter(newFileName ,fourcc, 20, (x,y))
 
+    frame_num = 0
     #Loop through all of the frames and calculate optical flow
     while(1):
+        frame_num += 1
         ret, frame2 = cap.read()
 
         #If no more frames can be read then break out of our loop
         if(not(ret)):
             break
-        next = cv2.cvtColor(frame2,cv2.COLOR_BGR2GRAY)
+        if(frame_num in valid_frames):
+            next = cv2.cvtColor(frame2,cv2.COLOR_BGR2GRAY)
 
-        flow = cv2.calcOpticalFlowFarneback(prvs,next, 0.5, 3, 15, 3, 5, 1.2, 0)
+            flow = cv2.calcOpticalFlowFarneback(prvs,next, 0.5, 3, 15, 3, 5, 1.2, 0)
 
-        mag, ang = cv2.cartToPolar(flow[...,0], flow[...,1])
-        hsv[...,0] = ang*180/np.pi/2
-        hsv[...,2] = cv2.normalize(mag,None,0,255,cv2.NORM_MINMAX)
-        rgb = cv2.cvtColor(hsv,cv2.COLOR_HSV2RGB)
-        out.write(rgb)
+            mag, ang = cv2.cartToPolar(flow[...,0], flow[...,1])
+            hsv[...,0] = ang*180/np.pi/2
+            hsv[...,2] = cv2.normalize(mag,None,0,255,cv2.NORM_MINMAX)
+            rgb = cv2.cvtColor(hsv,cv2.COLOR_HSV2RGB)
+            out.write(rgb)
 
-        prvs = next
+            prvs = next
 
     #Close the file
     cap.release()
