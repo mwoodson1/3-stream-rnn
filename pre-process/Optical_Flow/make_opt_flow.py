@@ -20,7 +20,10 @@ def make_optFlow(fileName):
     x = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
     y = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
 
-    tmp = length / 30
+    tmp = int(length / 30)
+
+    if(tmp==0):
+        tmp = 4
     valid_frames = [tmp*i for i in xrange(0,length/tmp)]
 
     #Open a videowriter object
