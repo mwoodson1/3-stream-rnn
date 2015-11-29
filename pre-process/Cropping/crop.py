@@ -12,28 +12,41 @@ def foveaCrop(fileName):
     x = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
     y = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
 
+    #Get 30 equally spaced frames from the video
+    sample = int(length / 30)
+
+    if(sample==0):
+        sample = 4
+
+    #Saves the indicies of the sampled frames
+    valid_frames = [sample*i for i in xrange(0,length/sample)]
+
     #Open a videowriter object
     fourcc = cv2.cv.CV_FOURCC(*'XVID')
     newFileName = "../../data/pre-process/cropped/"+fileName.split('/')[4]+"/"+fileName.split('/')[5].split('.')[0]+"_cropped.avi"
     out = cv2.VideoWriter(newFileName ,fourcc, 20, (x/2,y/2))
 
+    frame_num = 0
     while(1):
+        frame_num += 1
         ret, frame = cap.read()
 
         #If no more frames can be read then break out of our loop
         if(not(ret)):
             break
 
-        frame_height, frame_width, RGB = frame.shape
+        #Only crop every frame in the defined set
+        if(frame_num in valid_frames):
+            frame_height, frame_width, RGB = frame.shape
 
-        height_offset = frame_height/4
-        width_offset = frame_width/4
+            height_offset = frame_height/4
+            width_offset = frame_width/4
 
-        #Take the center part of the frame
-        new_frame = frame[height_offset:(y/2)+height_offset, width_offset:(x/2)+width_offset, :]
+            #Take the center part of the frame
+            new_frame = frame[height_offset:(y/2)+height_offset, width_offset:(x/2)+width_offset, :]
 
-        #Output to new avi file
-        out.write(new_frame)
+            #Output to new avi file
+            out.write(new_frame)
 
     # Release everything if job is finished
     cap.release()
