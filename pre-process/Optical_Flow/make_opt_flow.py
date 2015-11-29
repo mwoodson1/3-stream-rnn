@@ -1,11 +1,12 @@
 import os
+import sys
 import cv2
 import numpy as np
 import scipy.io as sio
 import threading
 
 #Creates and saves a .mat file that has all optical flow images for input video
-def make_optFlow(fileName):
+def make_optFlow(fileName,BW):
     print "Now processing: "+fileName.split("/")[5]
     cap = cv2.VideoCapture(fileName)
 
@@ -28,8 +29,12 @@ def make_optFlow(fileName):
 
     #Open a videowriter object
     fourcc = cv2.cv.CV_FOURCC(*'XVID')
-    newFileName = "../../data/pre-process/optFlow/"+fileName.split('/')[4]+"/"+fileName.split('/')[5].split('.')[0]+"_optFlow.avi"
-    out = cv2.VideoWriter(newFileName ,fourcc, 20, (x,y))
+    if(not(BW)):
+        newFileName = "../../data/pre-process/optFlow_BW/"+fileName.split('/')[4]+"/"+fileName.split('/')[5].split('.')[0]+"_optFlow.avi"
+        out = cv2.VideoWriter(newFileName ,fourcc, 20, (x,y))
+    else:
+        newFileName = "../../data/pre-process/optFlow_BW/"+fileName.split('/')[4]+"/"+fileName.split('/')[5].split('.')[0]+"_BW_optFlow.avi"
+        out = cv2.VideoWriter(newFileName ,fourcc, 6, (x,y),0)
 
     frame_num = 0
     #Loop through all of the frames and calculate optical flow
@@ -49,7 +54,12 @@ def make_optFlow(fileName):
             hsv[...,0] = ang*180/np.pi/2
             hsv[...,2] = cv2.normalize(mag,None,0,255,cv2.NORM_MINMAX)
             rgb = cv2.cvtColor(hsv,cv2.COLOR_HSV2RGB)
-            out.write(rgb)
+
+            if(not(BW)):
+                out.write(rgb)
+            else:
+                bw = cv2.cvtColor(rgb,cv2.COLOR_RGB2GRAY)
+                out.write(bw)
 
             prvs = next
 
@@ -57,19 +67,38 @@ def make_optFlow(fileName):
     cap.release()
     out.release()
 
-def main():
+def main(argv):
+
+    if(argv and argv[0]=="-bw"):
+        print "Doing BW optical flow"
+        BWFLAG = 1
+    else:
+        print "Doing RGB optical flow"
+        BWFLAG = 0
+
     #Get all the directories in the UCF-101 dataset
     dirs = [x[0] for x in os.walk("../../data/UCF-101/")]
-
-    #Creating a directory similar to dataset for the pre-processed data
-    for i in xrange(len(dirs)):
-        if(i==0):
-            continue
-        directory = "../../data/pre-process/optFlow/"+dirs[i].split("/")[4]
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-
     l = len(dirs)
+
+    if(not(BWFLAG)):
+        #Creating a directory similar to dataset for the pre-processed data
+        for i in xrange(l):
+            if(i==0):
+                continue
+            directory = "../../data/pre-process/optFlow/"+dirs[i].split("/")[4]
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+    else:
+        #Creating a directory similar to dataset for the pre-processed data
+        for i in xrange(l):
+            if(i==0):
+                continue
+            directory = "../../data/pre-process/optFlow_BW/"+dirs[i].split("/")[4]
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+
+
+    
     #Loop through all directories
     for i in xrange(l):
         print("%.2f" % (float(i)/float(l)))
@@ -77,7 +106,7 @@ def main():
             continue
         #Loop through every file in the directory
         for filename in os.listdir(dirs[i]):
-            make_optFlow(dirs[i]+"/"+filename)
+            make_optFlow(dirs[i]+"/"+filename, BWFLAG)
 
 if __name__ == '__main__':
-	main()
+	main(sys.argv[1:])
