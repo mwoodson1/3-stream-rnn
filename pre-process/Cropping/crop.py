@@ -3,6 +3,10 @@ import cv2
 import numpy as np
 import scipy.io as sio
 
+#TODO
+#Make it a parameter as to whether we want to do sampled or full cropping of videos.
+#Look at optical flow for example
+
 def foveaCrop(fileName):
     print "Now processing: "+fileName.split("/")[5]
     cap = cv2.VideoCapture(fileName)
@@ -23,8 +27,8 @@ def foveaCrop(fileName):
 
     #Open a videowriter object
     fourcc = cv2.cv.CV_FOURCC(*'XVID')
-    newFileName = "../../data/pre-process/cropped/"+fileName.split('/')[4]+"/"+fileName.split('/')[5].split('.')[0]+"_cropped.avi"
-    out = cv2.VideoWriter(newFileName ,fourcc, 20, (x/2,y/2))
+    newFileName = "../../data/pre-process/cropped_sampled/"+fileName.split('/')[4]+"/"+fileName.split('/')[5].split('.')[0]+"_cropped_sampled.avi"
+    out = cv2.VideoWriter(newFileName ,fourcc, 5, (x/2,y/2))
 
     frame_num = 0
     while(1):
@@ -61,7 +65,7 @@ def main():
     for i in xrange(len(dirs)):
         if(i==0):
             continue
-        directory = "../../data/pre-process/cropped/"+dirs[i].split("/")[4]
+        directory = "../../data/pre-process/cropped_sampled/"+dirs[i].split("/")[4]
         if not os.path.exists(directory):
             os.makedirs(directory)
 
