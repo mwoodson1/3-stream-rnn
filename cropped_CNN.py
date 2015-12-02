@@ -76,11 +76,11 @@ def main():
 
 	print "Loading data..."
 	(X_train, y_train, X_test, y_test) = get_data()
-	X_train = X_train[0:500,:]
-	y_train = y_train[0:500]
+	X_train = X_train[0:256,:]
+	y_train = y_train[0:256]
 
-	X_test = X_test[0:500,:]
-	y_test = y_test[0:500]
+	X_test = X_test[0:256,:]
+	y_test = y_test[0:256]
 
 	print "Training matrix dimensions"
 	print "X_train: ", X_train.shape
@@ -112,14 +112,12 @@ def main():
 
 	cost = GeneralizedCost(costfunc=CrossEntropyMulti())
 
-	
-
 	#flag = input("Press Enter if you want to begin training process.")
 	print "Training network..."
+	print args.epochs
 	model.fit(train, optimizer=opt, num_epochs=args.epochs, cost=cost, callbacks=callbacks)
 	mets = model.eval(test, metric=valmetric)
-	print type(mets)
-	print mets.shape
+
 	print 'Validation set metrics:'
 	print 'LogLoss: %.2f, Accuracy: %.1f %%0 (Top-1), %.1f %% (Top-5)' % (mets[0], 
 																		(1.0-mets[1])*100,
