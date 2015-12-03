@@ -5,7 +5,7 @@ import scipy.io as sio
 import random
 import pickle
 
-NUM_FRAMES = 1  #Number of frames to be selected for each video
+NUM_FRAMES = 70  #Number of frames to be selected for each video
 
 def selectRandomFrames(fileName):
 	"""
@@ -44,11 +44,12 @@ def selectRandomFrames(fileName):
 		print "Wait for the header"
 
 	pos_frame = cap.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
+	out = 0
 	while(1):
 		ret, frame2 = cap.read()
 		#If no more frames can be read then break out of our loop
 		if(not(ret)):
-			if(len(output_frames) >= len(indices)):
+			if(out >= len(indices)-1):
 				break
 			else:
 				output_frames.append(frame2)
@@ -61,12 +62,13 @@ def selectRandomFrames(fileName):
 				break
 			#print "im here"
 			if(pos_frame in indices):
-				output_frames.append(frame2)
+				file_dir = "trainData/cropped/"+tmp[2]+"/"
+				img_Name = tmp[3].split(".")[0] + "_" + str(int(pos_frame))
+				cv2.imwrite(file_dir+img_Name+".jpg",frame2)
+				out += 1
 
 	#Close the file
 	cap.release()
-
-	return np.array(output_frames)
 
 #Returns a dictionary containing all the video (.avi) file names in the training list
 def getTrainList():
@@ -88,8 +90,16 @@ def createTrainingSet():
 	"""
 	Creates and saves the training set of frames and labels
 	"""
-	#Get all the directories in the UCF-101 dataset
 	dirs = [x[0] for x in os.walk("data/UCF-101/")]
+
+	#Creating a directory similar to dataset for the pre-processed data
+	for i in xrange(len(dirs)):
+		if(i==0):
+			continue
+		directory = "trainData/cropped/"+dirs[i].split("/")[2]
+		if not os.path.exists(directory):
+			os.makedirs(directory)
+
 	#Get all the videos in the training list
 	trainVids = getTrainList()
 	keys = trainVids.keys()
@@ -97,15 +107,10 @@ def createTrainingSet():
 	#Dictionary to hold filename and the list of random frame indices 
 	trainingFrames = dict.fromkeys(keys)
 
-	frames_so_far = np.zeros([len(keys)*NUM_FRAMES,120,160,3])
-
 	import random
 	rand_ind = random.sample(range(len(keys)*NUM_FRAMES),len(keys)*NUM_FRAMES)
-	
-	outputs = np.zeros([len(keys),1])
 
 	l = len(dirs)
-	cnt = 0
 	#Loop through all directories
 	for i in xrange(l):
 		print("%.2f" % (float(i)/float(l)))
@@ -115,12 +120,8 @@ def createTrainingSet():
 		for filename in os.listdir(dirs[i]):
 			#Check if filename exists in training set, otherwise skip
 			if dirs[i]+"/"+filename in keys:
-				k = rand_ind[cnt]
-				frames_so_far[k,:,:,:] = selectRandomFrames(dirs[i]+"/"+filename)
-				outputs[k] = trainVids[dirs[i]+"/"+filename] 
-				cnt += 1
-	np.save("training_frames",frames_so_far)
-	np.save("training_frames_classes", outputs)
+				print dirs[i]+"/"+filename
+				selectRandomFrames(dirs[i]+"/"+filename)
 
 def getTestList():
 	"""
@@ -148,6 +149,17 @@ def createTestingSet():
 	"""
 	Creates and saves the testing set of frames and labels
 	"""
+
+	dirs = [x[0] for x in os.walk("data/UCF-101/")]
+
+	#Creating a directory similar to dataset for the pre-processed data
+	for i in xrange(len(dirs)):
+		if(i==0):
+			continue
+		directory = "testData/cropped/"+dirs[i].split("/")[2]
+		if not os.path.exists(directory):
+			os.makedirs(directory)
+
 	#Get all the directories in the UCF-101 dataset
 	dirs = [x[0] for x in os.walk("data/UCF-101/")]
 	#Get all the videos in the training list
@@ -179,11 +191,12 @@ def createTestingSet():
 				frames_so_far[k,:,:,:] = selectRandomFrames(dirs[i]+"/"+filename)
 				outputs[k] = trainVids[dirs[i]+"/"+filename] 
 				cnt += 1
-	np.save("testing_frames",frames_so_far)
-	np.save("testing_frames_classes", outputs)
+	#np.save("testing_frames",frames_so_far)
+	#np.save("testing_frames_classes", outputs)
 
 
 def main():
+	createTrainingSet()
 	if(os.path.isfile("training_frames_classes.npy")):
 		print "Found training frame file"
 	else:
