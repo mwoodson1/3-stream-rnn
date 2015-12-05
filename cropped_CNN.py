@@ -9,36 +9,13 @@ from neon.layers import Conv, DropoutBinary, Pooling, GeneralizedCost, Affine
 from neon.optimizers import GradientDescentMomentum, MultiOptimizer, Schedule, Adadelta
 from neon.transforms import Rectlin, Softmax, CrossEntropyMulti, TopKMisclassification
 from neon.models import Model
-from neon.data import ImgMaster
 from neon.callbacks.callbacks import Callbacks
 from neon.data import DataIterator
 
+from neon.data import ImageLoader
+
 from neon.transforms import Logistic, CrossEntropyBinary, Misclassification
 
-def get_data():
-	"""
-	Retrieves the stored data and reshapes it to correct data 
-	iterator shape.
-	"""
-	#Import the randomly selected frames and labels
-	X_train = np.load("training_frames.npy")
-	y_train = np.load("training_frames_classes.npy")
-	X_test = np.load("testing_frames.npy")
-	y_test = np.load("testing_frames_classes.npy")
-
-	print "Preparing data..."
-	num_ex, x, y, rgb = X_train.shape
-	#Need to reshape X and y to appropriate dataiterator formats
-	X_train = np.reshape(X_train,(num_ex, x*y*rgb))
-
-	num_ex, x, y, rgb = X_test.shape
-	#Need to reshape X and y to appropriate dataiterator formats
-	X_test = np.reshape(X_test,(num_ex, x*y*rgb))
-
-	y_train = np.reshape(y_train, y_train.shape[0]).astype(np.uint8)
-	y_test = np.reshape(y_test, y_test.shape[0]).astype(np.uint8)
-
-	return (X_train, y_train, X_test, y_test)
 
 def constuct_network():
 	"""
@@ -74,25 +51,10 @@ def main():
 	logger = logging.getLogger()
 	logger.setLevel(args.log_thresh)
 
-	print "Loading data..."
-	(X_train, y_train, X_test, y_test) = get_data()
-	X_train = X_train[0:256,:]
-	y_train = y_train[0:256]
-
-	X_test = X_test[0:256,:]
-	y_test = y_test[0:256]
-
-	print "Training matrix dimensions"
-	print "X_train: ", X_train.shape
-	print "y_train: ", y_train.shape
-
-	print "Testing matrix dimensions"
-	print "X_test: ", X_test.shape
-	print "y_test: ", y_test.shape
-
-	#Create dataiterator object
-	train = DataIterator(X_train, y_train, nclass=101, lshape=(3,120,160))
-	test = DataIterator(X_test, y_test, nclass=101, lshape=(3,120,160))
+	train = ImageLoader(repo_dir="dataTmp",inner_size=224,set_name='train',nlabels=101)
+	test = ImageLoader(repo_dir="dataTmp",set_name='validation', do_transforms=False,nlabels=101)
+	train.init_batch_provider()
+	test.init_batch_provider()
 
 	print "Constructing network..."
 	#Create AlexNet architecture
@@ -101,10 +63,11 @@ def main():
 	model.load_weights(args.model_file)
 
 	# drop weights LR by 1/250**(1/3) at epochs (23, 45, 66), drop bias LR by 1/10 at epoch 45
-	weight_sched = Schedule([22, 44, 65], (1/250.)**(1/3.))
-	opt_gdm = GradientDescentMomentum(0.01, 0.9, wdecay=0.0005, schedule=weight_sched)
-	opt_biases = GradientDescentMomentum(0.02, 0.9, schedule=Schedule([44], 0.1))
+	weight_sched = Schedule([22, 44, 65, 129, 140], (1/250.)**(1/3.))
+	opt_gdm = GradientDescentMomentum(0.01, 0.9, wdecay=0.005, schedule=weight_sched)
+	opt_biases = GradientDescentMomentum(0.04, 1.0, schedule=Schedule([130],.1))
 	opt = MultiOptimizer({'default': opt_gdm, 'Bias': opt_biases})
+
 
 	# configure callbacks
 	valmetric = TopKMisclassification(k=5)

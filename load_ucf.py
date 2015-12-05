@@ -5,7 +5,8 @@ import scipy.io as sio
 import random
 import pickle
 
-NUM_FRAMES = 70  #Number of frames to be selected for each video
+#Number of frames to be selected for each video
+NUM_FRAMES = 70  
 
 def rand_indices(length):
 	#Generate unique numbers within a range (for random indices of frames)
@@ -169,16 +170,6 @@ def createTestingSet():
 	trainVids = getTestList()
 	keys = trainVids.keys()
 
-	#Dictionary to hold filename and the list of random frame indices 
-	#trainingFrames = dict.fromkeys(keys)
-
-	#frames_so_far = np.zeros([len(keys)*NUM_FRAMES,120,160,3])
-
-	#import random
-	#rand_ind = random.sample(range(len(keys)*NUM_FRAMES),len(keys)*NUM_FRAMES)
-	
-	#outputs = np.zeros([len(keys),1])
-
 	l = len(dirs)
 	cnt = 0
 	#Loop through all directories
@@ -189,9 +180,7 @@ def createTestingSet():
 		#Loop through every file in the directory
 		for filename in os.listdir(dirs[i]):
 			#Check if filename exists in training set, otherwise skip
-			#print dirs[i]+"/"+filename
 			if dirs[i]+"/"+filename in keys:
-				#print "got here"
 				selectRandomFrames(dirs[i]+"/"+filename,True)
 
 def main():

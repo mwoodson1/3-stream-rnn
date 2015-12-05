@@ -14,13 +14,16 @@ def main():
 
 	#Change the last layer of the AlexNet architecture weights to
 	#be of size 101 instead of 1000
+	#Also need to change the states if we want to continue training
 	for i in xrange(0,16):
 	    if(i==14):
 	        W = tmp[i]['params']['W']
-	        tmp[i]['params']['W'] = W[0:101,:]
+	        weights['layer_params_states'][i]['params']['W'] = W[0:101,:]
+	        weights['layer_params_states'][i]['states'][0] = weights['layer_params_states'][i]['states'][0][0:101,:]
 	    if(i==15):
 	        W = tmp[i]['params']['W']
-	        tmp[i]['params']['W'] = W[0:101]
+	        weights['layer_params_states'][i]['params']['W'] = W[0:101]
+	        weights['layer_params_states'][i]['states'][0] = weights['layer_params_states'][i]['states'][0][0:101,:]
 	        
 	pickle.dump( weights, open( "my_alexnet.p", "wb" ) )
 
