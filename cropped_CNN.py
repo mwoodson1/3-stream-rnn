@@ -55,9 +55,10 @@ def main():
 	#Set up batch iterator for training images
 	train = ImgMaster(repo_dir='dataTmp', set_name='train', inner_size=120, subset_pct=100)
 	val = ImgMaster(repo_dir='dataTmp', set_name='validation', inner_size=120, subset_pct=100)
-	test = ImgMaster(repo_dir='dataTmp', set_name='validation', inner_size=120, subset_pct=100, do_transforms=False)
+	test = ImgMaster(repo_dir='dataTestTmp', set_name='train', inner_size=120, subset_pct=100, do_transforms=False)
 
 	train.init_batch_provider()
+	val.init_batch_provider()
 	test.init_batch_provider()
 
 	print "Constructing network..."
