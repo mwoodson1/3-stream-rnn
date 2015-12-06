@@ -39,7 +39,7 @@ def main():
         if category == '':
             continue
         
-        directory = "../../data/pre-process/Spectogram/" + category
+        directory = "../../data/pre-process/Spectrogram/" + category
         if not os.path.exists(directory):
             os.makedirs(directory)
     
@@ -51,7 +51,7 @@ def main():
         category = dirs[i].split("/")[-1]
         if category == '':
             continue
-        outdir = "../../data/pre-process/Spectogram/" + category
+        outdir = "../../data/pre-process/Spectrogram/" + category
         
         for filename in os.listdir(dirs[i]):
             source = dirs[i]+'/'+filename
