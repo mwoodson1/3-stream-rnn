@@ -15,6 +15,7 @@ from neon.data import DataIterator
 from neon.data import ImageLoader
 
 from neon.transforms import Logistic, CrossEntropyBinary, Misclassification
+from neon.data import ImgMaster
 
 
 def constuct_network():
@@ -51,8 +52,11 @@ def main():
 	logger = logging.getLogger()
 	logger.setLevel(args.log_thresh)
 
-	train = ImageLoader(repo_dir="dataTmp",inner_size=224,set_name='train',nlabels=101)
-	test = ImageLoader(repo_dir="dataTmp",set_name='validation', do_transforms=False,nlabels=101)
+	#Set up batch iterator for training images
+	train = ImgMaster(repo_dir='dataTmp', set_name='train', inner_size=120, subset_pct=100)
+	val = ImgMaster(repo_dir='dataTmp', set_name='validation', inner_size=120, subset_pct=100)
+	test = ImgMaster(repo_dir='dataTmp', set_name='validation', inner_size=120, subset_pct=100, do_transforms=False)
+
 	train.init_batch_provider()
 	test.init_batch_provider()
 
@@ -68,10 +72,9 @@ def main():
 	opt_biases = GradientDescentMomentum(0.04, 1.0, schedule=Schedule([130],.1))
 	opt = MultiOptimizer({'default': opt_gdm, 'Bias': opt_biases})
 
-
 	# configure callbacks
 	valmetric = TopKMisclassification(k=5)
-	callbacks = Callbacks(model, train, eval_set=test, metric=valmetric, **args.callback_args)
+	callbacks = Callbacks(model, train, eval_set=val, metric=valmetric, **args.callback_args)
 
 	cost = GeneralizedCost(costfunc=CrossEntropyMulti())
 
@@ -85,7 +88,8 @@ def main():
 	print 'LogLoss: %.2f, Accuracy: %.1f %%0 (Top-1), %.1f %% (Top-5)' % (mets[0], 
 																		(1.0-mets[1])*100,
 																		(1.0-mets[2])*100)
-
+	test.exit_batch_provider()
+	train.exit_batch_provider()
 
 if __name__ == '__main__':
 	main()
