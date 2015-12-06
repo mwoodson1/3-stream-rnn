@@ -12,7 +12,7 @@ function [] = generateSpectrogram()
             for j = 1:length(sounds)
                 %Generate spectrogram for wav file
                 [song, fs] = audioread(sounds(j).name);
-                s = spectrogram(song(:,1), 512, [], [], fs);  %not sure if need to use fs??
+                s = spectrogram(song(:,1), 512, [], [], fs);
                 %Save spectrogram as jpeg file
                 splits = strsplit(sounds(j).name, '.');
                 imgName = sprintf('%s_spectro.jpg', splits{1});
