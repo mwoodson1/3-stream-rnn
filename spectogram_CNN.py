@@ -20,7 +20,8 @@ from neon.data import ImgMaster
 
 def constuct_network():
 	"""
-	Constructs the layers of the AlexNet architecture.
+	Constructs the layers of the CNN architecture described in 
+	http://yerevann.github.io/2015/10/11/spoken-language-identification-with-deep-convolutional-networks/.
 	"""
 	layers = [Conv((7, 7, 20), init=Gaussian(scale=0.01), bias=Constant(0), 
                    activation=Rectlin(),padding=3, strides=1),
@@ -61,26 +62,21 @@ def main():
 	logger.setLevel(args.log_thresh)
 
 	#Set up batch iterator for training images
-	train = ImgMaster(repo_dir='dataTmp', set_name='train', inner_size=120, subset_pct=100)
-	val = ImgMaster(repo_dir='dataTmp', set_name='validation', inner_size=120, subset_pct=100)
-	test = ImgMaster(repo_dir='dataTmp', set_name='validation', inner_size=120, subset_pct=100, do_transforms=False)
+	train = ImgMaster(repo_dir='spectroDataTmp', set_name='train', inner_size=400, subset_pct=100)
+	val = ImgMaster(repo_dir='spectroDataTmp', set_name='validation', inner_size=400, subset_pct=100, do_transforms=False)
+	test = ImgMaster(repo_dir='spectroTestDataTmp', set_name='validation', inner_size=400, subset_pct=100, do_transforms=False)
 
 	train.init_batch_provider()
 	test.init_batch_provider()
 
 	print "Constructing network..."
-	#Create AlexNet architecture
 	model = constuct_network()
 
 	model.load_weights(args.model_file)
 
-	# drop weights LR by 1/250**(1/3) at epochs (23, 45, 66), drop bias LR by 1/10 at epoch 45
-	#weight_sched = Schedule([22, 44, 65, 129, 140], (1/250.)**(1/3.))
-	#opt_gdm = GradientDescentMomentum(0.01, 0.9, wdecay=0.005, schedule=weight_sched)
-	opt_gdm = Adadelta()
-    opt_biases = GradientDescentMomentum(0.04, 1.0, schedule=Schedule([130],.1))
-	opt = MultiOptimizer({'default': opt_gdm, 'Bias': opt_biases})
-
+	#Optimizer
+	opt = Adadelta()
+ 
 	# configure callbacks
 	valmetric = TopKMisclassification(k=5)
 	callbacks = Callbacks(model, train, eval_set=val, metric=valmetric, **args.callback_args)
