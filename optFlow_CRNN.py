@@ -1,20 +1,21 @@
 def constuct_network():
 	"""
-	Constructs the layers of the RCNN for optical flow.
+	Constructs the layers of the AlexNet architecture.
 	"""
 	layers = [Conv((11, 11, 64), init=Gaussian(scale=0.01), bias=Constant(0), activation=Rectlin(),
 	               padding=3, strides=4),
-	          Pooling(3, strides=2),
-	          Conv((5, 5, 192), init=Gaussian(scale=0.01), bias=Constant(1), activation=Rectlin(),
+			  Pooling(3, strides=2),
+	          Conv((7, 7, 128), init=Gaussian(scale=0.01), bias=Constant(1), activation=Rectlin(),
 	               padding=2),
 	          Pooling(3, strides=2),
-	          Conv((3, 3, 384), init=Gaussian(scale=0.03), bias=Constant(0), activation=Rectlin(),
-	               padding=1),
-	          Conv((3, 3, 256), init=Gaussian(scale=0.03), bias=Constant(1), activation=Rectlin(),
+	          Conv((5, 5, 256), init=Gaussian(scale=0.03), bias=Constant(0), activation=Rectlin(),
 	               padding=1),
 	          Conv((3, 3, 256), init=Gaussian(scale=0.03), bias=Constant(1), activation=Rectlin(),
 	               padding=1),
 	          Pooling(3, strides=2),
+	          LSTM(512, init=Gaussian(scale=0.03), activation=Rectlin(), gate_activation=Tanh()),
+	          LSTM(512, init=Gaussian(scale=0.03), activation=Rectlin(), gate_activation=Tanh()),
+	          LSTM(512, init=Gaussian(scale=0.03), activation=Rectlin(), gate_activation=Tanh()),
 	          Affine(nout=4096, init=Gaussian(scale=0.01), bias=Constant(1), activation=Rectlin()),
 	          DropoutBinary(keep=0.5),
 	          Affine(nout=4096, init=Gaussian(scale=0.01), bias=Constant(1), activation=Rectlin()),
@@ -32,8 +33,9 @@ def main():
 	logger.setLevel(args.log_thresh)
 
 	#Set up batch iterator for training images
-	train = ImgMaster(repo_dir='dataTmp', set_name='train', inner_size=120, subset_pct=100)
-	test = ImgMaster(repo_dir='dataTestTmp', set_name='train', inner_size=120, subset_pct=100, do_transforms=False)
+	train = ImgMaster(repo_dir='optFlowDataTmp', set_name='train', inner_size=120, subset_pct=100)
+	val = ImgMaster(repo_dir='optFlowDataTmp', set_name='validation', inner_size=120, subset_pct=100, do_transforms=False)
+	test = ImgMaster(repo_dir='optFlowDataTestTmp', set_name='train', inner_size=120, subset_pct=100, do_transforms=False)
 
 	train.init_batch_provider()
 	test.init_batch_provider()
