@@ -19,6 +19,9 @@ Run the followign scripts to pre-process the data:
 - pre-process/make_opt_flow.py -bw
 - load_ucf.py
 
+Or just run:
+./run_pre-process.sh
+
 ## Convert pre-trained AlexNet weights
 For our CNN we use a pre-trained AlexNet architecture. In classic AlexNet the softmax output is of size 1000 which we need to convert to 101(total number of classes in UCF-101). Running networks/make_new_weights.py will do the conversion for you and save the new saved weights in my_alexnet.py.
 
