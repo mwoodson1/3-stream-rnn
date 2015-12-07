@@ -14,6 +14,9 @@ Run the following scripts to pre-process the data:
 - pre-process/make_opt_flow.py -bw
 - load_ucf.py
 
+Or just run:
+./run_pre-process.sh
+
 ## Pre-process Spectrogram Data
 In addition to cropping the images and computing optical flow, we also train on the sound produced by a majority of the videos in the UCF-101 Dataset. We pre-process the sound by extracting the sound into .wav files and then converting them into 400x400 spectrogram images. Prior to running the spectrogram scripts, make sure you have ffmpeg installed on your machine. How to install ffmpeg: https://trac.ffmpeg.org/wiki/CompilationGuide. 
 
@@ -25,7 +28,6 @@ Instructions to generate spectrograms of the data:
 2.) Run pre-process/Spectrogram/generateSpectrogram.m in MATLAB
 
 3.) Run python /training_spectros.py
-
 
 ## Convert pre-trained AlexNet weights
 For our CNN we use a pre-trained AlexNet architecture. In classic AlexNet the softmax output is of size 1000 which we need to convert to 101(total number of classes in UCF-101). Running networks/make_new_weights.py will do the conversion for you and save the new saved weights in my_alexnet.py.
