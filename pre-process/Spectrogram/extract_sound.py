@@ -24,6 +24,8 @@ def extractWav(source, outdir):
           + output + ' -y'
     cmd = cmd.split(' ') 
     FNULL = open(os.devnull, 'w')
+    #Note: I had to add shell=True to the parameters of the subprocess call
+    #to get the script to run. 
     subprocess.call(cmd,stdout=FNULL, stderr=subprocess.STDOUT)
 
 def main():
