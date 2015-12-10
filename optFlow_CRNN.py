@@ -1,6 +1,21 @@
+import numpy as np 
+import pickle 
+
+import logging
+
+from neon.util.argparser import NeonArgparser
+from neon.initializers import Constant, Gaussian
+from neon.layers import Conv, DropoutBinary, Pooling, GeneralizedCost, Affine, LSTM
+from neon.optimizers import Adadelta
+from neon.transforms import Rectlin, Tanh, Softmax, CrossEntropyMulti, TopKMisclassification
+from neon.models import Model
+from neon.callbacks.callbacks import Callbacks
+from neon.data import DataIterator, ImgMaster
+
 def constuct_network():
 	"""
-	Constructs the layers of the AlexNet architecture.
+	Constructs the layers of our RCNN architecture. It is similar to AlexNet but simplified to only a 
+	few convolutional layers and 3 LSTM layers.
 	"""
 	layers = [Conv((11, 11, 64), init=Gaussian(scale=0.01), bias=Constant(0), activation=Rectlin(),
 	               padding=3, strides=4),
@@ -13,11 +28,11 @@ def constuct_network():
 	          Conv((3, 3, 256), init=Gaussian(scale=0.03), bias=Constant(1), activation=Rectlin(),
 	               padding=1),
 	          Pooling(3, strides=2),
-	          LSTM(512, init=Gaussian(scale=0.03), activation=Rectlin(), gate_activation=Tanh()),
-	          LSTM(512, init=Gaussian(scale=0.03), activation=Rectlin(), gate_activation=Tanh()),
-	          LSTM(512, init=Gaussian(scale=0.03), activation=Rectlin(), gate_activation=Tanh()),
 	          Affine(nout=4096, init=Gaussian(scale=0.01), bias=Constant(1), activation=Rectlin()),
 	          DropoutBinary(keep=0.5),
+	          LSTM(512, init=Gaussian(scale=0.03), activation=Rectlin(), gate_activation=Tanh()),
+	          LSTM(512, init=Gaussian(scale=0.03), activation=Rectlin(), gate_activation=Tanh()),
+	          LSTM(512, init=Gaussian(scale=0.03), activation=Rectlin(), gate_activation=Tanh()),
 	          Affine(nout=4096, init=Gaussian(scale=0.01), bias=Constant(1), activation=Rectlin()),
 	          DropoutBinary(keep=0.5),
 	          Affine(nout=101, init=Gaussian(scale=0.01), bias=Constant(-7), activation=Softmax())]
@@ -33,24 +48,20 @@ def main():
 	logger.setLevel(args.log_thresh)
 
 	#Set up batch iterator for training images
-	train = ImgMaster(repo_dir='optFlowDataTmp', set_name='train', inner_size=120, subset_pct=100)
-	val = ImgMaster(repo_dir='optFlowDataTmp', set_name='validation', inner_size=120, subset_pct=100, do_transforms=False)
-	test = ImgMaster(repo_dir='optFlowDataTestTmp', set_name='train', inner_size=120, subset_pct=100, do_transforms=False)
+	train = ImgMaster(repo_dir='dataTmp_optFlow_BW', set_name='train', inner_size=240, subset_pct=100)
+	val = ImgMaster(repo_dir='dataTmp_optFlow_BW', set_name='train', inner_size=240, subset_pct=100, do_transforms=False)
+	test = ImgMaster(repo_dir='dataTestTmp_optFlow_BW', set_name='train', inner_size=240, subset_pct=100, do_transforms=False)
 
 	train.init_batch_provider()
+	val.init_batch_provider()
 	test.init_batch_provider()
 
 	print "Constructing network..."
 	#Create AlexNet architecture
 	model = constuct_network()
 
-	model.load_weights(args.model_file)
-
-	# drop weights LR by 1/250**(1/3) at epochs (23, 45, 66), drop bias LR by 1/10 at epoch 45
-	weight_sched = Schedule([22, 44, 65, 129, 140], (1/250.)**(1/3.))
-	opt_gdm = GradientDescentMomentum(0.01, 0.9, wdecay=0.005, schedule=weight_sched)
-	opt_biases = GradientDescentMomentum(0.04, 1.0, schedule=Schedule([130],.1))
-	opt = MultiOptimizer({'default': opt_gdm, 'Bias': opt_biases})
+	# Optimzer for model
+	opt = Adadelta()
 
 	# configure callbacks
 	valmetric = TopKMisclassification(k=5)
@@ -60,7 +71,6 @@ def main():
 
 	#flag = input("Press Enter if you want to begin training process.")
 	print "Training network..."
-	print args.epochs
 	model.fit(train, optimizer=opt, num_epochs=args.epochs, cost=cost, callbacks=callbacks)
 	mets = model.eval(test, metric=valmetric)
 

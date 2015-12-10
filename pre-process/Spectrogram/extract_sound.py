@@ -31,7 +31,7 @@ def extractWav(source, outdir):
 def main():
     dirs = [x[0] for x in os.walk("../../data/UCF-101/")]
     l = len(dirs)
-    
+
     # make directories to store the files
     for i in xrange(l):
         if(i==0):

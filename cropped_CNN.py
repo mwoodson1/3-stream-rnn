@@ -6,16 +6,11 @@ import logging
 from neon.util.argparser import NeonArgparser
 from neon.initializers import Constant, Gaussian
 from neon.layers import Conv, DropoutBinary, Pooling, GeneralizedCost, Affine
-from neon.optimizers import GradientDescentMomentum, MultiOptimizer, Schedule, Adadelta
+from neon.optimizers import GradientDescentMomentum, MultiOptimizer, Schedule
 from neon.transforms import Rectlin, Softmax, CrossEntropyMulti, TopKMisclassification
 from neon.models import Model
 from neon.callbacks.callbacks import Callbacks
-from neon.data import DataIterator
-
-from neon.data import ImageLoader
-
-from neon.transforms import Logistic, CrossEntropyBinary, Misclassification
-from neon.data import ImgMaster
+from neon.data import DataIterator, ImgMaster
 
 
 def constuct_network():
@@ -53,8 +48,9 @@ def main():
 	logger.setLevel(args.log_thresh)
 
 	#Set up batch iterator for training images
+	print "Setting up data batch loaders..."
 	train = ImgMaster(repo_dir='dataTmp', set_name='train', inner_size=120, subset_pct=100)
-	val = ImgMaster(repo_dir='dataTmp', set_name='validation', inner_size=120, subset_pct=100)
+	val = ImgMaster(repo_dir='dataTmp', set_name='train', inner_size=120, subset_pct=100, do_transforms=False)
 	test = ImgMaster(repo_dir='dataTestTmp', set_name='train', inner_size=120, subset_pct=100, do_transforms=False)
 
 	train.init_batch_provider()
@@ -65,10 +61,10 @@ def main():
 	#Create AlexNet architecture
 	model = constuct_network()
 
-	model.load_weights(args.model_file)
+	#model.load_weights(args.model_file)
 
 	# drop weights LR by 1/250**(1/3) at epochs (23, 45, 66), drop bias LR by 1/10 at epoch 45
-	weight_sched = Schedule([22, 44, 65, 129, 140], (1/250.)**(1/3.))
+	weight_sched = Schedule([22, 44, 65, 90, 97], (1/250.)**(1/3.))
 	opt_gdm = GradientDescentMomentum(0.01, 0.9, wdecay=0.005, schedule=weight_sched)
 	opt_biases = GradientDescentMomentum(0.04, 1.0, schedule=Schedule([130],.1))
 	opt = MultiOptimizer({'default': opt_gdm, 'Bias': opt_biases})
@@ -81,7 +77,6 @@ def main():
 
 	#flag = input("Press Enter if you want to begin training process.")
 	print "Training network..."
-	print args.epochs
 	model.fit(train, optimizer=opt, num_epochs=args.epochs, cost=cost, callbacks=callbacks)
 	mets = model.eval(test, metric=valmetric)
 
@@ -90,6 +85,7 @@ def main():
 																		(1.0-mets[1])*100,
 																		(1.0-mets[2])*100)
 	test.exit_batch_provider()
+	val.exit_batch_provider()
 	train.exit_batch_provider()
 
 if __name__ == '__main__':
